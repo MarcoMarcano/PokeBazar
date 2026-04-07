@@ -33,4 +33,4 @@ PokeBazar es un e-commerce de cartas de Pokemon desarrollado con PHP, HTML, Java
 - Correo: `admin@pokebazar.com`
 - Contrasena: `admin123`
 
-Si deseas cambiar la contrasena inicial, ingresa con el usuario administrador y actualizala desde el perfil o la tabla `users`.
+Puedes cambiar la contrasena inicial, ingresando con el usuario administrador y actualizandola desde el perfil o la tabla `users`.
