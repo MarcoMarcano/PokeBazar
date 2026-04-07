@@ -1,0 +1,125 @@
+<?php
+
+declare(strict_types=1);
+
+require_once __DIR__ . '/includes/auth.php';
+
+$pageTitle = 'Catalogo Pokemon';
+$search = trim($_GET['search'] ?? '');
+$category = trim($_GET['category'] ?? '');
+$sort = $_GET['sort'] ?? 'latest';
+
+$sql = 'SELECT id, name, price, image_url, category, rarity, stock, description FROM products WHERE 1 = 1';
+$params = [];
+
+if ($search !== '') {
+    $sql .= ' AND (name LIKE :search_name OR description LIKE :search_description)';
+    $params['search_name'] = '%' . $search . '%';
+    $params['search_description'] = '%' . $search . '%';
+}
+
+if ($category !== '') {
+    $sql .= ' AND category = :category';
+    $params['category'] = $category;
+}
+
+$orderBy = match ($sort) {
+    'price_asc' => 'price ASC',
+    'price_desc' => 'price DESC',
+    'name_asc' => 'name ASC',
+    default => 'id DESC',
+};
+
+$sql .= ' ORDER BY ' . $orderBy;
+$stmt = db()->prepare($sql);
+$stmt->execute($params);
+$products = $stmt->fetchAll();
+
+$categoryStmt = db()->query('SELECT DISTINCT category FROM products WHERE category <> "" ORDER BY category ASC');
+$categories = $categoryStmt->fetchAll(PDO::FETCH_COLUMN);
+
+require_once __DIR__ . '/includes/header.php';
+?>
+<section class="hero-panel">
+    <div>
+        <p class="eyebrow">Mercado de cartas coleccionables</p>
+        <h1>Encuentra cartas Pokemon para tu coleccion o tu mazo competitivo.</h1>
+        <p class="hero-copy">PokeBazar combina catalogo, carrito, perfiles y administracion en una sola experiencia hecha en PHP, HTML y JavaScript.</p>
+    </div>
+    <div class="hero-card">
+        <span>Colecciones activas</span>
+        <strong><?= count($products) ?></strong>
+        <small>Productos visibles con busqueda y filtros.</small>
+    </div>
+</section>
+
+<section class="panel">
+    <form class="filters" method="get">
+        <div class="field grow">
+            <label for="search">Buscar productos</label>
+            <input id="search" name="search" type="text" value="<?= e($search) ?>" placeholder="Ej. Charizard, Pikachu, booster box">
+        </div>
+        <div class="field">
+            <label for="category">Categoria</label>
+            <select id="category" name="category">
+                <option value="">Todas</option>
+                <?php foreach ($categories as $categoryOption): ?>
+                    <option value="<?= e($categoryOption) ?>" <?= $categoryOption === $category ? 'selected' : '' ?>><?= e($categoryOption) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div class="field">
+            <label for="sort">Ordenar</label>
+            <select id="sort" name="sort">
+                <option value="latest" <?= $sort === 'latest' ? 'selected' : '' ?>>Mas recientes</option>
+                <option value="price_asc" <?= $sort === 'price_asc' ? 'selected' : '' ?>>Precio menor</option>
+                <option value="price_desc" <?= $sort === 'price_desc' ? 'selected' : '' ?>>Precio mayor</option>
+                <option value="name_asc" <?= $sort === 'name_asc' ? 'selected' : '' ?>>Nombre A-Z</option>
+            </select>
+        </div>
+        <button class="button primary" type="submit">Aplicar</button>
+    </form>
+</section>
+
+<section class="product-grid">
+    <?php if (!$products): ?>
+        <article class="empty-state">
+            <h2>No encontramos productos</h2>
+            <p>Prueba con otra busqueda o elimina los filtros activos.</p>
+        </article>
+    <?php endif; ?>
+
+    <?php foreach ($products as $product): ?>
+        <article class="product-card">
+            <div class="product-thumb">
+                <?php if (!empty($product['image_url'])): ?>
+                    <img class="js-product-zoomable" src="<?= e(assetUrl((string) $product['image_url'])) ?>" alt="<?= e($product['name']) ?>" data-fullsrc="<?= e(assetUrl((string) $product['image_url'])) ?>" onclick="window.openProductImage && window.openProductImage(this)">
+                <?php else: ?>
+                    <div class="product-placeholder">
+                        <span>Imagen pendiente</span>
+                        <strong><?= e($product['category'] ?: 'Pokemon TCG') ?></strong>
+                    </div>
+                <?php endif; ?>
+                <span class="pill"><?= e($product['rarity'] ?: 'Coleccion') ?></span>
+            </div>
+            <div class="product-body">
+                <div class="product-meta">
+                    <span><?= e($product['category'] ?: 'Pokemon TCG') ?></span>
+                    <span>Stock: <?= (int) $product['stock'] ?></span>
+                </div>
+                <h2><?= e($product['name']) ?></h2>
+                <p><?= e($product['description']) ?></p>
+                <div class="product-footer">
+                    <strong><?= formatPrice((float) $product['price']) ?></strong>
+                    <form method="post" action="add_to_cart.php" class="inline-form">
+                        <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
+                        <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
+                        <input type="hidden" name="quantity" value="1">
+                        <button class="button secondary" type="submit">Agregar</button>
+                    </form>
+                </div>
+            </div>
+        </article>
+    <?php endforeach; ?>
+</section>
+<?php require_once __DIR__ . '/includes/footer.php'; ?>
