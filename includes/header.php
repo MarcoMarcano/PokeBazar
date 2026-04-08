@@ -34,7 +34,7 @@ $cartItemsCount = $user ? cartCount((int) $user['id']) : 0;
             </a>
             <nav class="main-nav">
                 <a href="<?= e(baseUrl('index.php')) ?>">Productos</a>
-                <a href="<?= e(baseUrl('cart.php')) ?>">Carrito <span class="badge"><?= $cartItemsCount ?></span></a>
+                <a href="<?= e(baseUrl('cart.php')) ?>">Carrito <span class="badge" data-cart-count><?= $cartItemsCount ?></span></a>
                 <?php if ($user): ?>
                     <a href="<?= e(baseUrl('profile.php')) ?>">Mi perfil</a>
                     <?php if (isAdmin()): ?>

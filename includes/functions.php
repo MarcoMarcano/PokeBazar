@@ -47,6 +47,22 @@ function redirectTo(string $path): void
     exit;
 }
 
+function requestExpectsJson(): bool
+{
+    $accept = strtolower((string) ($_SERVER['HTTP_ACCEPT'] ?? ''));
+    $requestedWith = strtolower((string) ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? ''));
+
+    return str_contains($accept, 'application/json') || $requestedWith === 'xmlhttprequest';
+}
+
+function jsonResponse(array $payload, int $statusCode = 200): void
+{
+    http_response_code($statusCode);
+    header('Content-Type: application/json; charset=UTF-8');
+    echo json_encode($payload, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    exit;
+}
+
 function setFlash(string $type, string $message): void
 {
     $_SESSION['flash'] = [

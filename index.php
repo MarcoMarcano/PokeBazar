@@ -38,6 +38,24 @@ $products = $stmt->fetchAll();
 $categoryStmt = db()->query('SELECT DISTINCT category FROM products WHERE category <> "" ORDER BY category ASC');
 $categories = $categoryStmt->fetchAll(PDO::FETCH_COLUMN);
 
+$catalogUser = currentUser();
+$cartItemsByProduct = [];
+
+if ($catalogUser) {
+    $cartItemsStmt = db()->prepare('SELECT id, product_id, quantity FROM cart_items WHERE user_id = :user_id AND status = :status');
+    $cartItemsStmt->execute([
+        'user_id' => $catalogUser['id'],
+        'status' => 'active',
+    ]);
+
+    foreach ($cartItemsStmt->fetchAll() as $cartItem) {
+        $cartItemsByProduct[(int) $cartItem['product_id']] = [
+            'id' => (int) $cartItem['id'],
+            'quantity' => (int) $cartItem['quantity'],
+        ];
+    }
+}
+
 require_once __DIR__ . '/includes/header.php';
 ?>
 <section class="hero-panel">
@@ -90,6 +108,13 @@ require_once __DIR__ . '/includes/header.php';
     <?php endif; ?>
 
     <?php foreach ($products as $product): ?>
+        <?php
+        $productId = (int) $product['id'];
+        $productStock = (int) $product['stock'];
+        $productCartState = $cartItemsByProduct[$productId] ?? null;
+        $productQuantity = (int) ($productCartState['quantity'] ?? 0);
+        $productCartId = (int) ($productCartState['id'] ?? 0);
+        ?>
         <article class="product-card">
             <div class="product-thumb">
                 <?php if (!empty($product['image_url'])): ?>
@@ -111,15 +136,23 @@ require_once __DIR__ . '/includes/header.php';
                 <p><?= e($product['description']) ?></p>
                 <div class="product-footer">
                     <strong><?= formatPrice((float) $product['price']) ?></strong>
-                    <form method="post" action="add_to_cart.php" class="inline-form">
+                    <form method="post" action="add_to_cart.php" class="inline-form js-catalog-cart-form" data-product-id="<?= $productId ?>" data-cart-id="<?= $productCartId ?>" data-quantity="<?= $productQuantity ?>" data-stock="<?= $productStock ?>">
                         <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
-                        <input type="hidden" name="product_id" value="<?= (int) $product['id'] ?>">
+                        <input type="hidden" name="product_id" value="<?= $productId ?>">
                         <input type="hidden" name="quantity" value="1">
-                        <button class="button secondary" type="submit">Agregar</button>
+                        <div class="catalog-cart-control" data-cart-control>
+                            <button class="catalog-cart-step" type="button" data-cart-action="decrease" aria-label="Restar una unidad de <?= e($product['name']) ?>">-</button>
+                            <span class="catalog-cart-quantity" data-cart-quantity><?= $productQuantity ?></span>
+                            <button class="catalog-cart-step" type="button" data-cart-action="increase" aria-label="Sumar una unidad de <?= e($product['name']) ?>" <?= $productStock > 0 && $productQuantity >= $productStock ? 'disabled' : '' ?>>+</button>
+                        </div>
                     </form>
                 </div>
             </div>
         </article>
     <?php endforeach; ?>
 </section>
+
+<?php if ($catalogUser): ?>
+    <a class="floating-cart-cta<?= $cartItemsCount > 0 ? ' is-visible' : '' ?>" href="<?= e(baseUrl('cart.php')) ?>" data-floating-cart-cta data-floating-cart-count="<?= $cartItemsCount ?>" aria-hidden="<?= $cartItemsCount > 0 ? 'false' : 'true' ?>">Agregar al carrito</a>
+<?php endif; ?>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>
