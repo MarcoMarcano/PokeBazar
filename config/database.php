@@ -2,11 +2,6 @@
 
 declare(strict_types=1);
 
-const DB_HOST = '127.0.0.1';
-const DB_NAME = 'pokebazar';
-const DB_USER = 'root';
-const DB_PASS = '';
-
 function db(): PDO
 {
     static $pdo = null;
@@ -15,7 +10,12 @@ function db(): PDO
         return $pdo;
     }
 
-    $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', DB_HOST, DB_NAME);
+    $dbHost = getenv('DB_HOST') ?: '127.0.0.1';
+    $dbName = getenv('DB_NAME') ?: 'pokebazar';
+    $dbUser = getenv('DB_USER') ?: 'root';
+    $dbPass = getenv('DB_PASS') ?: '';
+
+    $dsn = sprintf('mysql:host=%s;dbname=%s;charset=utf8mb4', $dbHost, $dbName);
 
     $options = [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
@@ -23,7 +23,7 @@ function db(): PDO
         PDO::ATTR_EMULATE_PREPARES => false,
     ];
 
-    $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
+    $pdo = new PDO($dsn, $dbUser, $dbPass, $options);
 
     return $pdo;
 }

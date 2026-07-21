@@ -81,7 +81,7 @@ require_once __DIR__ . '/../includes/header.php';
         <input type="hidden" name="id" value="<?= (int) $product['id'] ?>">
         <div class="editor-header">
             <div>
-                <p class="eyebrow">Gestor de catalogo</p>
+                <p class="eyebrow">Gestor de catálogo</p>
                 <h1><?= $product['id'] ? 'Editar producto' : 'Nuevo producto' ?></h1>
             </div>
             <p class="editor-note">Completa solo lo esencial. Si la imagen es local, usa la ruta relativa como <strong>assets/images/archivo.jpg</strong>.</p>
@@ -133,7 +133,7 @@ require_once __DIR__ . '/../includes/header.php';
     </form>
 
     <section class="panel">
-        <h2>Catalogo actual</h2>
+        <h2>Catálogo actual</h2>
         <table class="table">
             <thead>
                 <tr>

@@ -8,7 +8,7 @@ if (isLoggedIn()) {
     redirectTo('index.php');
 }
 
-$pageTitle = 'Iniciar sesion';
+$pageTitle = 'Iniciar sesión';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!verifyCsrfToken($_POST['csrf_token'] ?? null)) {
@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $_SESSION['user_id'] = (int) $user['id'];
-        setFlash('success', 'Sesion iniciada correctamente.');
+        setFlash('success', 'Sesión iniciada correctamente.');
         redirectTo('index.php');
     }
 
@@ -47,7 +47,7 @@ require_once __DIR__ . '/includes/header.php';
     <article class="auth-panel">
         <p class="eyebrow">Acceso de usuario</p>
         <h1>Bienvenido de vuelta a PokeBazar.</h1>
-        <p>Inicia sesion para agregar cartas al carrito, revisar tu perfil y generar facturas.</p>
+        <p>Inicia sesión para agregar cartas al carrito, revisar tu perfil y generar facturas.</p>
     </article>
     <form class="panel auth-form" method="post">
         <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">

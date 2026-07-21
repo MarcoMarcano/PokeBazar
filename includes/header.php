@@ -38,9 +38,9 @@ $cartItemsCount = $user ? cartCount((int) $user['id']) : 0;
                 <?php if ($user): ?>
                     <a href="<?= e(baseUrl('profile.php')) ?>">Mi perfil</a>
                     <?php if (isAdmin()): ?>
-                        <a href="<?= e(baseUrl('admin/index.php')) ?>">Administracion</a>
+                        <a href="<?= e(baseUrl('admin/index.php')) ?>">Administración</a>
                     <?php endif; ?>
-                    <a href="<?= e(baseUrl('logout.php')) ?>">Cerrar sesion</a>
+                    <a href="<?= e(baseUrl('logout.php')) ?>">Cerrar sesión</a>
                 <?php else: ?>
                     <a href="<?= e(baseUrl('login.php')) ?>">Ingresar</a>
                     <a href="<?= e(baseUrl('register.php')) ?>">Crear cuenta</a>

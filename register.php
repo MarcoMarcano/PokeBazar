@@ -43,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'role' => 'user',
     ]);
 
-    setFlash('success', 'Cuenta creada correctamente. Ahora puedes iniciar sesion.');
+    setFlash('success', 'Cuenta creada correctamente. Ahora puedes iniciar sesión.');
     redirectTo('login.php');
 }
 

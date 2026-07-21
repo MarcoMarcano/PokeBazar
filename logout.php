@@ -7,5 +7,5 @@ require_once __DIR__ . '/includes/auth.php';
 session_unset();
 session_destroy();
 session_start();
-setFlash('success', 'Sesion finalizada.');
+setFlash('success', 'Sesión finalizada.');
 redirectTo('index.php');

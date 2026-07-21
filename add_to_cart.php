@@ -5,12 +5,12 @@ declare(strict_types=1);
 require_once __DIR__ . '/includes/auth.php';
 
 if (!isLoggedIn()) {
-    setFlash('warning', 'Debes iniciar sesion para continuar.');
+    setFlash('warning', 'Debes iniciar sesión para continuar.');
 
     if (requestExpectsJson()) {
         jsonResponse([
             'ok' => false,
-            'message' => 'Debes iniciar sesion para continuar.',
+            'message' => 'Debes iniciar sesión para continuar.',
             'redirect' => baseUrl('login.php'),
         ], 401);
     }

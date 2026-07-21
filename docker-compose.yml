@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  app:
+    build: .
+    container_name: pokebazar-app
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: db
+      DB_NAME: pokebazar
+      DB_USER: root
+      DB_PASS: rootpass
+      EXCHANGE_API_URL: https://ve.dolarapi.com/v1/dolares/oficial
+    depends_on:
+      - db
+    volumes:
+      - .:/var/www/html
+
+  db:
+    image: mysql:8.0
+    container_name: pokebazar-db
+    environment:
+      MYSQL_DATABASE: pokebazar
+      MYSQL_ROOT_PASSWORD: rootpass
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/includes/auth.php';
 
-$pageTitle = 'Catalogo Pokemon';
+$pageTitle = 'Catálogo Pokémon';
 $search = trim($_GET['search'] ?? '');
 $category = trim($_GET['category'] ?? '');
 $sort = $_GET['sort'] ?? 'latest';
@@ -34,6 +34,23 @@ $sql .= ' ORDER BY ' . $orderBy;
 $stmt = db()->prepare($sql);
 $stmt->execute($params);
 $products = $stmt->fetchAll();
+$exchangeRate = getExchangeRate();
+$exchangeRateLabel = 'Tasa actual: ' . number_format($exchangeRate, 2, '.', ',') . ' Bs/USD';
+
+// Re-read latest stock from database so the catalog reflects recent purchases immediately.
+$stockRefreshStmt = db()->query('SELECT id, stock FROM products');
+$latestStocks = [];
+foreach ($stockRefreshStmt->fetchAll() as $stockRow) {
+    $latestStocks[(int) $stockRow['id']] = (int) $stockRow['stock'];
+}
+
+foreach ($products as &$product) {
+    $productId = (int) $product['id'];
+    if (isset($latestStocks[$productId])) {
+        $product['stock'] = $latestStocks[$productId];
+    }
+}
+unset($product);
 
 $categoryStmt = db()->query('SELECT DISTINCT category FROM products WHERE category <> "" ORDER BY category ASC');
 $categories = $categoryStmt->fetchAll(PDO::FETCH_COLUMN);
@@ -62,16 +79,20 @@ require_once __DIR__ . '/includes/header.php';
     <div>
         <p class="eyebrow">Mercado de cartas coleccionables</p>
         <h1>Encuentra cartas Pokemon para tu coleccion o tu mazo competitivo.</h1>
-        <p class="hero-copy">PokeBazar combina catalogo, carrito, perfiles y administracion en una sola experiencia hecha en PHP, HTML y JavaScript.</p>
+        <p class="hero-copy">PokeBazar combina catálogo, carrito, perfiles y administración en una sola experiencia hecha en PHP, HTML y JavaScript.</p>
     </div>
     <div class="hero-card">
         <span>Colecciones activas</span>
         <strong><?= count($products) ?></strong>
-        <small>Productos visibles con busqueda y filtros.</small>
+        <small>Productos visibles con búsqueda y filtros.</small>
     </div>
 </section>
 
 <section class="panel">
+    <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <strong><?= e($exchangeRateLabel) ?></strong>
+        <small>Precios mostrados en USD y equivalentes en Bs según la API.</small>
+    </div>
     <form class="filters" method="get">
         <div class="field grow">
             <label for="search">Buscar productos</label>
@@ -89,7 +110,7 @@ require_once __DIR__ . '/includes/header.php';
         <div class="field">
             <label for="sort">Ordenar</label>
             <select id="sort" name="sort">
-                <option value="latest" <?= $sort === 'latest' ? 'selected' : '' ?>>Mas recientes</option>
+                <option value="latest" <?= $sort === 'latest' ? 'selected' : '' ?>>Más recientes</option>
                 <option value="price_asc" <?= $sort === 'price_asc' ? 'selected' : '' ?>>Precio menor</option>
                 <option value="price_desc" <?= $sort === 'price_desc' ? 'selected' : '' ?>>Precio mayor</option>
                 <option value="name_asc" <?= $sort === 'name_asc' ? 'selected' : '' ?>>Nombre A-Z</option>
@@ -103,7 +124,7 @@ require_once __DIR__ . '/includes/header.php';
     <?php if (!$products): ?>
         <article class="empty-state">
             <h2>No encontramos productos</h2>
-            <p>Prueba con otra busqueda o elimina los filtros activos.</p>
+            <p>Prueba con otra búsqueda o elimina los filtros activos.</p>
         </article>
     <?php endif; ?>
 
@@ -135,7 +156,10 @@ require_once __DIR__ . '/includes/header.php';
                 <h2><?= e($product['name']) ?></h2>
                 <p><?= e($product['description']) ?></p>
                 <div class="product-footer">
-                    <strong><?= formatPrice((float) $product['price']) ?></strong>
+                    <div>
+                        <strong><?= formatPrice((float) $product['price']) ?></strong>
+                        <small>≈ <?= formatPriceBs((float) $product['price'], $exchangeRate) ?></small>
+                    </div>
                     <form method="post" action="add_to_cart.php" class="inline-form js-catalog-cart-form" data-product-id="<?= $productId ?>" data-cart-id="<?= $productCartId ?>" data-quantity="<?= $productQuantity ?>" data-stock="<?= $productStock ?>">
                         <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
                         <input type="hidden" name="product_id" value="<?= $productId ?>">
@@ -143,7 +167,7 @@ require_once __DIR__ . '/includes/header.php';
                         <div class="catalog-cart-control" data-cart-control>
                             <button class="catalog-cart-step" type="button" data-cart-action="decrease" aria-label="Restar una unidad de <?= e($product['name']) ?>">-</button>
                             <span class="catalog-cart-quantity" data-cart-quantity><?= $productQuantity ?></span>
-                            <button class="catalog-cart-step" type="button" data-cart-action="increase" aria-label="Sumar una unidad de <?= e($product['name']) ?>" <?= $productStock > 0 && $productQuantity >= $productStock ? 'disabled' : '' ?>>+</button>
+                            <button class="catalog-cart-step" type="button" data-cart-action="increase" aria-label="Sumar una unidad de <?= e($product['name']) ?>" <?= $productStock <= 0 || ($productStock > 0 && $productQuantity >= $productStock) ? 'disabled' : '' ?>>+</button>
                         </div>
                     </form>
                 </div>

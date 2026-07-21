@@ -45,7 +45,7 @@ function isAdmin(): bool
 function requireLogin(): void
 {
     if (!isLoggedIn()) {
-        setFlash('warning', 'Debes iniciar sesion para continuar.');
+        setFlash('warning', 'Debes iniciar sesión para continuar.');
         redirectTo('login.php');
     }
 }

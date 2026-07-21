@@ -29,6 +29,7 @@ if (!$items) {
     redirectTo('cart.php');
 }
 
+$exchangeRate = getExchangeRate();
 $total = 0.0;
 $cartReference = 'CART-' . $user['id'] . '-' . date('YmdHis');
 foreach ($items as $item) {
@@ -45,6 +46,7 @@ $invoiceId = (int) db()->lastInsertId();
 
 $itemStmt = db()->prepare('INSERT INTO invoice_items (invoice_id, product_name, unit_price, quantity) VALUES (:invoice_id, :product_name, :unit_price, :quantity)');
 $archiveStmt = db()->prepare('UPDATE cart_items SET status = :status, cart_reference = :cart_reference WHERE id = :id');
+$stockStmt = db()->prepare('UPDATE products SET stock = GREATEST(stock - :quantity, 0) WHERE id = :product_id');
 
 foreach ($items as $item) {
     $itemStmt->execute([
@@ -58,6 +60,11 @@ foreach ($items as $item) {
         'status' => 'completed',
         'cart_reference' => $cartReference,
         'id' => $item['id'],
+    ]);
+
+    $stockStmt->execute([
+        'quantity' => (int) $item['quantity'],
+        'product_id' => (int) $item['product_id'],
     ]);
 }
 
@@ -73,6 +80,7 @@ $pageTitle = 'Factura';
 require_once __DIR__ . '/includes/header.php';
 ?>
 <section class="invoice-printable panel">
+    <div class="invoice-watermark" aria-hidden="true">Para uso personal</div>
     <div class="invoice-head">
         <div>
             <p class="eyebrow">Factura generada</p>
@@ -117,8 +125,12 @@ require_once __DIR__ . '/includes/header.php';
     </table>
 
     <div class="invoice-total">
-        <span>Total final</span>
+        <span>Total final USD</span>
         <strong><?= formatPrice((float) $invoice['final_price']) ?></strong>
+    </div>
+    <div class="invoice-total">
+        <span>Total final BS</span>
+        <strong><?= formatPriceBs((float) $invoice['final_price'], $exchangeRate) ?></strong>
     </div>
 </section>
 <?php require_once __DIR__ . '/includes/footer.php'; ?>

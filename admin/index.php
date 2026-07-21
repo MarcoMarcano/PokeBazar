@@ -27,7 +27,7 @@ require_once __DIR__ . '/../includes/header.php';
     <div>
         <p class="eyebrow">Administrador</p>
         <h1>Centro de control de PokeBazar.</h1>
-        <p>Desde aqui puedes gestionar el catalogo, usuarios y privilegios administrativos.</p>
+        <p>Desde aquí puedes gestionar el catálogo, usuarios y privilegios administrativos.</p>
     </div>
     <div class="admin-links">
         <a class="button primary" href="products.php">Gestionar productos</a>

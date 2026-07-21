@@ -308,6 +308,29 @@ h2 {
 .auth-panel,
 .invoice-printable {
     padding: 26px;
+    position: relative;
+    overflow: hidden;
+}
+
+.invoice-watermark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(0, 95, 115, 0.08);
+    pointer-events: none;
+    user-select: none;
+    transform: rotate(-18deg);
+    z-index: 0;
+}
+
+.invoice-printable > * {
+    position: relative;
+    z-index: 1;
 }
 
 .product-grid {
@@ -703,6 +726,34 @@ h2 {
     margin-top: 20px;
     padding: 18px 20px;
     border-radius: 20px;
+    background: rgba(255, 248, 238, 0.95);
+    border: 1px solid rgba(68, 45, 20, 0.08);
+}
+
+.invoice-watermark {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(0, 95, 115, 0.09);
+    pointer-events: none;
+    user-select: none;
+    transform: rotate(-18deg);
+    z-index: 0;
+}
+
+.invoice-printable {
+    position: relative;
+    overflow: hidden;
+}
+
+.invoice-printable > * {
+    position: relative;
+    z-index: 1;
 }
 
 @media print {
@@ -726,6 +777,11 @@ h2 {
     .invoice-printable {
         box-shadow: none;
         border: 0;
+    }
+
+    .invoice-watermark {
+        display: grid;
+        color: rgba(0, 0, 0, 0.12);
     }
 }
 

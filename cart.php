@@ -21,6 +21,7 @@ $stmt->execute([
     'status' => 'active',
 ]);
 $items = $stmt->fetchAll();
+$exchangeRate = getExchangeRate();
 $total = 0.0;
 foreach ($items as $item) {
     $total += (float) $item['price'] * (int) $item['quantity'];
@@ -34,7 +35,7 @@ require_once __DIR__ . '/includes/header.php';
     <div>
         <p class="eyebrow">Carrito de compras</p>
         <h1>Revisa tus cartas seleccionadas.</h1>
-        <p>Solo los usuarios con sesion iniciada pueden mantener productos en el carrito y generar una factura imprimible.</p>
+        <p>Solo los usuarios con sesión iniciada pueden mantener productos en el carrito y generar una factura imprimible.</p>
     </div>
     <div class="price-panel">
         <span>Total actual</span>
@@ -47,9 +48,9 @@ require_once __DIR__ . '/includes/header.php';
     <div class="panel">
         <?php if (!$items): ?>
             <div class="empty-state compact">
-                <h2>Tu carrito esta vacio</h2>
-                <p>Explora el catalogo y agrega cartas para iniciar una compra.</p>
-                <a class="button primary" href="index.php">Ir al catalogo</a>
+                <h2>Tu carrito está vacío</h2>
+                <p>Explora el catálogo y agrega cartas para iniciar una compra.</p>
+                <a class="button primary" href="index.php">Ir al catálogo</a>
             </div>
         <?php endif; ?>
 
@@ -61,6 +62,7 @@ require_once __DIR__ . '/includes/header.php';
                     <div>
                         <h2><?= e($item['name']) ?></h2>
                         <p><?= formatPrice((float) $item['price']) ?> c/u</p>
+                        <small>≈ <?= formatPriceBs((float) $item['price'], $exchangeRate) ?> c/u</small>
                     </div>
                     <form method="post" action="update_cart.php" class="cart-actions">
                         <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
@@ -77,10 +79,13 @@ require_once __DIR__ . '/includes/header.php';
 
     <aside class="panel invoice-box">
         <h2>Resumen</h2>
-        <div class="summary-row"><span>Subtotal</span><strong><?= formatPrice($total) ?></strong></div>
+        <div class="summary-row"><span>Subtotal USD</span><strong><?= formatPrice($total) ?></strong></div>
+        <div class="summary-row"><span>Subtotal BS</span><strong><?= formatPriceBs($total, $exchangeRate) ?></strong></div>
+        <div class="summary-row"><span>Tasa</span><strong><?= number_format($exchangeRate, 2, '.', ',') ?> Bs/USD</strong></div>
         <div class="summary-row"><span>Envio</span><strong>Gratis</strong></div>
-        <div class="summary-row total"><span>Total</span><strong><?= formatPrice($total) ?></strong></div>
-        <form method="post" action="invoice.php">
+        <div class="summary-row total"><span>Total USD</span><strong><?= formatPrice($total) ?></strong></div>
+        <div class="summary-row total"><span>Total BS</span><strong><?= formatPriceBs($total, $exchangeRate) ?></strong></div>
+        <form method="post" action="quiz.php">
             <input type="hidden" name="csrf_token" value="<?= e(csrfToken()) ?>">
             <button class="button primary full" type="submit" <?= !$items ? 'disabled' : '' ?>>Generar factura</button>
         </form>

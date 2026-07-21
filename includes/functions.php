@@ -93,6 +93,61 @@ function formatPrice(float $price): string
     return '$' . number_format($price, 2, '.', ',');
 }
 
+function getExchangeRate(float $fallback = 36.0): float
+{
+    $cachePath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'storage' . DIRECTORY_SEPARATOR . 'exchange_rate.json';
+    $cacheDir = dirname($cachePath);
+
+    if (!is_dir($cacheDir)) {
+        @mkdir($cacheDir, 0777, true);
+    }
+
+    $apiUrl = getenv('EXCHANGE_API_URL') ?: 'https://ve.dolarapi.com/v1/dolares/oficial';
+
+    if (is_file($cachePath)) {
+        $cached = @json_decode((string) file_get_contents($cachePath), true);
+        if (is_array($cached) && isset($cached['rate'], $cached['fetched_at'])) {
+            $age = time() - (int) $cached['fetched_at'];
+            $sameSource = ($cached['source'] ?? '') === $apiUrl;
+            if ($age < 3600 && $sameSource) {
+                return (float) $cached['rate'];
+            }
+        }
+    }
+    $context = stream_context_create([
+        'http' => [
+            'timeout' => 5,
+            'ignore_errors' => true,
+        ],
+    ]);
+
+    $payload = @file_get_contents($apiUrl, false, $context);
+    if (is_string($payload) && $payload !== '') {
+        $decoded = json_decode($payload, true);
+        $rate = $decoded['promedio'] ?? $decoded['venta'] ?? $decoded['compra'] ?? $decoded['rate'] ?? $decoded['price'] ?? $decoded['dolar']['price'] ?? null;
+
+        if (is_numeric($rate)) {
+            $rateValue = (float) $rate;
+            @file_put_contents($cachePath, json_encode([
+                'rate' => $rateValue,
+                'fetched_at' => time(),
+                'source' => $apiUrl,
+            ], JSON_UNESCAPED_UNICODE));
+
+            return $rateValue;
+        }
+    }
+
+    return $fallback;
+}
+
+function formatPriceBs(float $price, ?float $rate = null): string
+{
+    $rateValue = $rate ?? getExchangeRate();
+
+    return 'Bs ' . number_format($price * $rateValue, 2, '.', ',');
+}
+
 function cartCount(int $userId): int
 {
     $stmt = db()->prepare('SELECT COALESCE(SUM(quantity), 0) FROM cart_items WHERE user_id = :user_id AND status = :status');
