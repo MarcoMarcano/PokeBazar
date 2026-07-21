@@ -62,6 +62,16 @@ https://ve.dolarapi.com/v1/dolares/oficial
 
 La tasa se almacena en caché por un tiempo para evitar consultas excesivas. Si prefieres usar otra fuente, puedes cambiar la variable `EXCHANGE_API_URL` desde Docker o el valor por defecto en la función de conversión.
 
+## Documentación de la API
+
+La integración de tipo de cambio está documentada en [API.md](API.md). Allí se explica:
+
+- el endpoint usado,
+- el formato esperado de la respuesta,
+- los campos que lee la aplicación,
+- la configuración mediante variables de entorno,
+- y el comportamiento de caché y fallback.
+
 ## Notas de funcionamiento
 
 - El proceso de compra incluye una verificación breve para reducir compras automáticas o poco honestas.
